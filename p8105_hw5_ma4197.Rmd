@@ -91,4 +91,22 @@ ggplot(all_cities, aes(x= reorder(city_state,estimate), y= estimate, color=city_
         y= "Estimate of Proportion")
   
 ```
+*Description*
+The estimated proportions of unsolved homicides for each of the 50 largest cities in the US were graphed in order of lowest to highest proportion of unsolved cases. Richmond, VA has the lowest proportion, whilst Chicago, IL has the highest. Each was fitted with a error bar based upon the lowest and highest values from the estimates 95% confidence interval generated.
+
+## Problem 3
+
+```{r}
+simulate_prob3 = function(n= 30, mu = 0, sigma = 5) {
+  simulate_data=
+  tibble(
+    x= rnorm (n, mean= mu, sd=sigma))
+  return(simulate_data)}
+  
+output = vector("list", length = 5000)
+  for(i in 1:5000) {
+    output= bind_rows(output,simulate_prob3(mu=0)) 
+  }
+
+```
 
