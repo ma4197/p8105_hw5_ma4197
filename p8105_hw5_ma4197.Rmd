@@ -12,6 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(tidyverse)
 library(rvest)
+library(ggplot2)
 ```
 
 ```{r}
@@ -28,12 +29,18 @@ murder_df=
 twp_data %>%
 janitor::clean_names() %>% 
 mutate(
+  state= replace(state, state == "AL", "OK"),
+  state = replace(state, state== "wI", "WI")
+) %>% 
+mutate(
   city_state= paste(city, state, sep= ","))
+
 
 ```
 
 Solved and Unsolved Case Count
 ```{r}
+case_count= 
 murder_df %>% 
   group_by(city_state) %>% 
   summarize(unsolved_n = sum(disposition== 'Closed without arrest',
@@ -41,12 +48,47 @@ murder_df %>%
                           total_m= n()) 
 ```
 
-Prop.Test
-
+Prop.Test for Baltimore
 ```{r}
 baltimore.test=
-  murder_df %>% 
-  filter(city_state == "Baltimore, MD") %>% 
- mutate(prop= map2(unsolved_n, total_m, ~prop.test(.x, .y)))
+  case_count %>% 
+  filter(city_state == "Baltimore,MD") %>% 
+  transform(
+    prop = map2(unsolved_n, total_m, ~prop.test(.x, .y) %>% 
+      broom::tidy())) %>% 
+    unnest() %>% 
+  select(prop.estimate, prop.conf.low, prop.conf.high)
+```
+
+Prop.test All Cities
+```{r}
+all_cities = 
+case_count %>% 
+  mutate(
+    prop= map2(unsolved_n, total_m, ~prop.test(.x, .y) %>% 
+      broom::tidy())) %>% 
+    unnest() %>% 
+  select(city_state, estimate, conf.low, conf.high)
+
+all_cities_output=
+  all_cities %>% 
+  knitr::kable() 
+  
+```
+
+Plotting
+
+```{r}
+ggplot(all_cities, aes(x= reorder(city_state,estimate), y= estimate, color=city_state))+
+  geom_point()+
+  geom_errorbar(aes(ymin=conf.low, ymax= conf.high))+
+  theme_classic()+ 
+  theme(legend.position= "none")+
+  ggtitle("Proportion Estimated of Unsolved Homicide in Large US Cities")+
+  theme(plot.title = element_text(hjust= 0.5),
+        axis.text.x.bottom = element_text(size= 7, angle= 90))+
+    labs(x = "City",
+        y= "Estimate of Proportion")
+  
 ```
 
