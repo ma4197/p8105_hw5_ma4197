@@ -1,0 +1,55 @@
+---
+title: "Homework 5"
+author: "Mayuri Albal"
+date: "2022-11-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(rvest)
+```
+
+```{r}
+twp_data = read_csv(file= "./data/homicide-data.csv") %>%
+janitor::clean_names()
+```
+
+**Describe the Raw Data**
+Within the original data set there are 52,719 observations and 12 variables. The variables names include: 'uid', 'reported_date', 'victim_last', 'victim_first', 'victim_race', 'victim_age', 'victim_sex', 'city', 'state', 'lat', 'lon', and 'disposition'. This data was collected across different police department reports from 50 of the largest cities in the United States from the past decade.
+
+City and State Variable Made
+```{r}
+murder_df=
+twp_data %>%
+janitor::clean_names() %>% 
+mutate(
+  city_state= paste(city, state, sep= ",") %>% 
+  group_by(city_state) %>% 
+  summarize(unsolved_n = sum(disposition == 'Closed without Arrest',
+                             disposition == 'Open/No Arrest'),
+    total_m= n()) 
+
+```
+
+Solved and Unsolved Case Count
+```{r}
+murder_df %>% 
+  group_by(city_state) %>% 
+  summarize(unsolved_n = sum(disposition== 'Closed without arrest',
+                             disposition == 'Open/No arrest'),
+                          total_m= n()) 
+```
+
+Prop.Test
+
+```{r}
+baltimore.test=
+  murder_df %>% 
+  
+```
+
