@@ -28,11 +28,7 @@ murder_df=
 twp_data %>%
 janitor::clean_names() %>% 
 mutate(
-  city_state= paste(city, state, sep= ",") %>% 
-  group_by(city_state) %>% 
-  summarize(unsolved_n = sum(disposition == 'Closed without Arrest',
-                             disposition == 'Open/No Arrest'),
-    total_m= n()) 
+  city_state= paste(city, state, sep= ","))
 
 ```
 
@@ -50,6 +46,7 @@ Prop.Test
 ```{r}
 baltimore.test=
   murder_df %>% 
-  
+  filter(city_state == "Baltimore, MD") %>% 
+ mutate(prop= map2(unsolved_n, total_m, ~prop.test(.x, .y)))
 ```
 
