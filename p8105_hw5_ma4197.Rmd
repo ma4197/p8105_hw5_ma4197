@@ -14,7 +14,10 @@ library(tidyverse)
 library(rvest)
 library(ggplot2)
 ```
+##Problem 1
 
+
+##Problem 2
 ```{r}
 twp_data = read_csv(file= "./data/homicide-data.csv") %>%
 janitor::clean_names()
@@ -165,10 +168,67 @@ mu_output_final=
 ##Plots
 
 ```{r}
+mu_final_plot=
 mu_output_final %>% 
+  group_by(mu) %>% 
   mutate(
     rnull= ifelse(p.value < 0.05, 1, 0)) %>% 
-  count(power= mean(rnull))
-  
+  summarise(pw = mean(rnull))
 ```
 
+```{r}
+ggplot(mu_final_plot, aes(x=mu, y=pw))+
+  geom_point()+
+  geom_smooth()+
+  theme_classic()+ 
+  theme(legend.position= "none")+
+  ggtitle("True Mu Value versus Power Mu Values")+
+    labs(x = "True Mu",
+        y= "Power Mu Value")
+```
+
+*Description*
+It is evident when observing the graph that as effect size (mu value) increases, the power increases as well. As a result of power being reliant upon both effect size and sample size, it is evident that there is a clear progression of how power increases as the effect size increases, due to the sample size remaining the same (n=30) throughout. There will be less power with smaller effect sizes due to them requiring a bigger sample size in order to achieve the same amount of power as those with large effect sizes. Yet with this, at a certain effect size, it appears to be around 4 for this data, power begins to plateau as the sample size is not changing.
+
+Plot #2
+
+Data Conditioning Plot #1
+```{r}
+mu_avg_plot =
+mu_output_final %>% 
+  group_by(mu) %>% 
+  summarise(avg_mu = mean(estimate))
+```
+
+```{r}
+ggplot(mu_avg_plot, aes(x= mu, y= avg_mu))+
+  geom_point()+
+  geom_line()+
+  theme_classic()+ 
+  ggtitle("Average Mu Value versus True Mu Value")+
+    labs(x = "True Mu",
+        y= "Average Mu Value")
+```
+
+Data Conditioning Plot #2
+
+```{r}
+mu_avg_null_plot =
+mu_output_final %>% 
+  filter(p.value <0.05) %>% 
+  group_by(mu) %>% 
+  summarise(avg_null_mu = mean(estimate))
+```
+
+```{r}
+ggplot(mu_avg_null_plot, aes(x= mu, y= avg_null_mu))+
+  geom_point()+
+  geom_smooth()+
+  theme_classic()+ 
+  ggtitle("Average Mu Value versus True Mu Value Among Null Rejected Samples")+
+    labs(x = "True Mu",
+        y= "Average Mu Value")
+```
+
+**Description**
+While the sample average mu across test samples where the null is rejected has approximately a linear relationship with the true mu, it is evident that the two are not equal. This can be evident through how many samples are able to reject the null hypothesis by getting a p-value less than 0.05, however they were not well crafted in other areas such as effect size or needed sample and as a result their true mu is quite different from the one found in the samples generated.
