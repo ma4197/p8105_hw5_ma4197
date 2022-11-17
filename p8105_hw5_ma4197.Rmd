@@ -96,17 +96,79 @@ The estimated proportions of unsolved homicides for each of the 50 largest citie
 
 ## Problem 3
 
+Simulation #1
 ```{r}
-simulate_prob3 = function(n= 30, mu = 0, sigma = 5) {
-  simulate_data=
+simulate_prob3 = function(n = 30, mu=0, sigma = 5) {
+  simulate_data =
   tibble(
-    x= rnorm (n, mean= mu, sd=sigma))
+    x = list(rnorm(n, mean = mu, sd = sigma)))
+  
   return(simulate_data)}
   
-output = vector("list", length = 5000)
-  for(i in 1:5000) {
-    output= bind_rows(output,simulate_prob3(mu=0)) 
+output = tibble()
+  for (i in 1:5000) {
+    output = bind_rows(output,simulate_prob3(mu=0)) 
   }
 
+ttest_output= output %>% 
+  mutate(
+    t_test_new = map(.x = x, ~t.test(.x) %>% broom::tidy())) %>% 
+  unnest(t_test_new) %>% 
+  select(x,estimate,p.value)
+```
+
+
+Simulation #2 with (1-6)
+```{r}
+simulate2 = function(n = 30, mu=0, sigma = 5) {
+  simulate2_data =
+  tibble(
+    x = rnorm(n, mean = mu, sd = sigma))
+
+simulate2_data %>% 
+  t.test() %>% 
+  broom::tidy()}
+```
+
+```{r}
+mu_list=
+  list(
+    "mu = 1" = 1,
+    "mu = 2" = 2,
+    "mu = 3" = 3,
+    "mu = 4" = 4,
+    "mu = 5" = 5,
+    "mu = 6" = 6
+  )
+mu_output= list(vector, length = 6)
+
+
+for (i in 1:6) {
+  mu_output[[i]] = rerun(5000, simulate2(mu = mu_list[[i]])) %>% 
+    bind_rows()
+}
+```
+
+
+```{r}
+mu_output= tibble(mu_output)
+
+mu = c(1,2,3,4,5,6)
+mu_output ['mu']= mu
+```
+
+```{r}
+mu_output_final=
+  unnest(mu_output)
+```
+
+##Plots
+
+```{r}
+mu_output_final %>% 
+  mutate(
+    rnull= ifelse(p.value < 0.05, 1, 0)) %>% 
+  count(power= mean(rnull))
+  
 ```
 
